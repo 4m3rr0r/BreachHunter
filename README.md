@@ -66,6 +66,7 @@ Search for data associated with a hashed password:
     
     ./BreachHunter.sh -H <hashed_password> -f output_directory
     
+![alt text](./BreachHunter.png)
 
 License
 This project is licensed under the MIT License - see the LICENSE file for details.
