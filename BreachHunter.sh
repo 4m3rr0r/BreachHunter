@@ -24,7 +24,7 @@ print_banner() {
     echo -e "  / __  / ___/ _ \/ __ \`/ ___/ __ \/ /_/ / / / / __ \/ __/ _ \/ ___/"
     echo -e " / /_/ / /  /  __/ /_/ / /__/ / / / __  / /_/ / / / / /_/  __/ /    "
     echo -e "/_____/_/   \___/\__,_/\___/_/ /_/_/ /_/\__,_/_/ /_/\__/\___/_/     "
-    echo -e "${RESET}" | echo -e "${BLUE}                                      [v1.0.0]${RESET}" "${GREEN}[4m3rr0r] \n${RESET}" 
+    echo -e "${RESET}" | echo -e "${BLUE}                                      [v1.1.0]${RESET}" "${GREEN}[4m3rr0r] \n${RESET}" 
 }
 
 # Call the function to print the banner
@@ -142,7 +142,7 @@ case $input in
         make_api_call "phone" "$2"
         ;;
      "-v" | "-V" | "--version")
-        echo -e "${YELLOW} Program version 1.0.0 ${RESET}"
+        echo -e "${YELLOW} Program version 1.1.0 ${RESET}"
         ;;
     *)
         echo -e "${RED}Invalid option: $input ${RESET}"
