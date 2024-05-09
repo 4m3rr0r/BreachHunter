@@ -72,7 +72,8 @@ make_api_call() {
         exit 1
     fi
 
-    echo -e "${BLUE} balance : ${balance} ${RESET}"
+        echo -e "${BLUE} balance : ${balance} ${RESET}"
+        echo ""
 
     # Extract and process data from API response
     if jq -e '.entries[]' >/dev/null 2>&1 <<< "$(cat temp.txt)"; then
@@ -85,6 +86,7 @@ make_api_call() {
         cat temp.txt | jq -c '.entries[] | {phone}' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' | grep -o 'phone:[^,]*' | cut -d ':' -f 2 | grep -v '^$' > "$file/phone.txt"
     else
         echo -e "${RED}Error: Data not found${RESET}"
+        rm -rvf $file 2&>/dev/null;
         exit 1
     fi
 
