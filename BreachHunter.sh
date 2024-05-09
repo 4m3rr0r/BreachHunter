@@ -44,13 +44,13 @@ fi
 # Function to make API call
 make_api_call() {
     if [[ -z $2 ]]; then
-        echo "${RED}$1 is not provided${RESET}"
+        echo -e "${RED}$1 is not provided${RESET}"
         exit 1
     fi
 
     # Check if file name is provided
     if [[ -z $file ]]; then
-        echo "${RED}File name is not provided${RESET}"
+        echo -e "${RED}File name is not provided${RESET}"
         exit 1
     fi
 
@@ -60,7 +60,13 @@ make_api_call() {
     # Make the API call
     curl -X GET "https://api.dehashed.com/search?query=${1}:${2}" -u "${user_email}:${api_key}" -H 'Accept: application/json' > temp.txt 2>/dev/null
 
-    balance=$(cat temp.txt | jq -r '.balance' 2>/dev/null)
+    # Check if curl failed or returned empty response
+    if [ $? -ne 0 ] || [ ! -s temp.txt ]; then
+        echo -e "${RED}Error: API call failed or returned empty response${RESET}"
+        exit 1
+    fi
+
+    balance=$(jq -r '.balance' temp.txt 2>/dev/null)
     if [[ "$balance" == "null" ]]; then
         echo -e "${RED}API key or email is invalid${RESET}"
         exit 1
@@ -69,14 +75,18 @@ make_api_call() {
     echo -e "${BLUE} balance : ${balance} ${RESET}"
 
     # Extract and process data from API response
-    cat temp.txt | jq -c '.entries[] | {ip_address, username, name, email, hashed_password, hash_type, password, phone, vin, address }' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' 
-
-    # Extract specific fields to separate files
-    cat temp.txt | jq -c '.entries[] | {email}' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' | grep -o 'email:[^,]*' | cut -d ':' -f 2 | grep -v '^$' > "$file/email.txt"
-    cat temp.txt | jq -c '.entries[] | {password}' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' | grep -o 'password:[^,]*' | cut -d ':' -f 2 | grep -v '^$' > "$file/password.txt"
-    cat temp.txt | jq -c '.entries[] | {name}' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' | grep -o 'name:[^,]*' | cut -d ':' -f 2 | grep -v '^$' > "$file/name.txt"
-    cat temp.txt | jq -c '.entries[] | {hashed_password}' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' | grep -o 'hashed_password:[^,]*' | cut -d ':' -f 2 | grep -v '^$' > "$file/hashed_password.txt"
-    cat temp.txt | jq -c '.entries[] | {phone}' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' | grep -o 'phone:[^,]*' | cut -d ':' -f 2 | grep -v '^$' > "$file/phone.txt"
+    if jq -e '.entries[]' >/dev/null 2>&1 <<< "$(cat temp.txt)"; then
+        cat temp.txt | jq -c '.entries[] | {ip_address, username, name, email, hashed_password, hash_type, password, phone, vin, address }' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' 
+        # Extract specific fields to separate files
+        cat temp.txt | jq -c '.entries[] | {email}' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' | grep -o 'email:[^,]*' | cut -d ':' -f 2 | grep -v '^$' > "$file/email.txt"
+        cat temp.txt | jq -c '.entries[] | {password}' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' | grep -o 'password:[^,]*' | cut -d ':' -f 2 | grep -v '^$' > "$file/password.txt"
+        cat temp.txt | jq -c '.entries[] | {name}' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' | grep -o 'name:[^,]*' | cut -d ':' -f 2 | grep -v '^$' > "$file/name.txt"
+        cat temp.txt | jq -c '.entries[] | {hashed_password}' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' | grep -o 'hashed_password:[^,]*' | cut -d ':' -f 2 | grep -v '^$' > "$file/hashed_password.txt"
+        cat temp.txt | jq -c '.entries[] | {phone}' | sed 's/}{/}, {/g' | sed 's/[{""}]//g' | grep -o 'phone:[^,]*' | cut -d ':' -f 2 | grep -v '^$' > "$file/phone.txt"
+    else
+        echo -e "${RED}Error: Data not found${RESET}"
+        exit 1
+    fi
 
     rm -f temp.txt
 }
